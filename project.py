@@ -39,3 +39,23 @@ class Match:
                 return "win"
             else:
                 return "tie"
+
+class Analyzer:
+    def __init__(self, user):
+        self.user = user
+        self.matches = []
+
+    def analyzer_results(self):
+        if len(self.matches) == 0:
+            return "No matches to analyze"
+
+        results = {"win": 0, "lose": 0, "tie": 0}
+        for match in self.matches:
+            result = match.result_match()
+            if result == "win":
+                results["win"] += 1
+            elif result == "lose":
+                results["lose"] += 1
+            else:
+                results["tie"] += 1
+        return results
