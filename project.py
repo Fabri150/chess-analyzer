@@ -21,12 +21,15 @@ class Match:
             raise ValueError(f"User {self.user} not found")
 
     def result_match(self):
+        if self.result not in ("1-0", "0-1", "1/2-1/2"):
+            raise ValueError(f"{self.result} is an invalid result")
+
         color = self.my_color()
         if color == "white":
             if self.result == "1-0":
-                    return "win"
+                return "win"
             elif self.result == "0-1":
-                    return "lose"
+                return "lose"
             else:
                 return "tie"
         else:
@@ -36,30 +39,3 @@ class Match:
                 return "win"
             else:
                 return "tie"
-
-headers_de_prueba = {
-    "White": "fabri",
-    "Black": "rival",
-    "Result": "1-0"
-}
-
-m = Match.from_pgn(headers_de_prueba, "fabri")
-print(m.result_match())
-
-headers_de_prueba = {
-    "White": "fabri",
-    "Black": "rival",
-    "Result": "0-1"
-}
-
-m = Match.from_pgn(headers_de_prueba, "fabri")
-print(m.result_match())
-
-headers_de_prueba = {
-    "White": "fabri",
-    "Black": "rival",
-    "Result": "1-1"
-}
-
-m = Match.from_pgn(headers_de_prueba, "fabri")
-print(m.result_match())
