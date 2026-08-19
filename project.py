@@ -1,3 +1,6 @@
+import chess.pgn
+import io
+
 class Match:
     def __init__(self, user, result, white_player, black_player):
         self.user = user
@@ -59,3 +62,23 @@ class Analyzer:
             else:
                 results["tie"] += 1
         return results
+
+    def load_matches(self, pgn):
+        pgn_io = io.StringIO(pgn)
+        game = chess.pgn.read_game(pgn_io)
+        while game is not None:
+            match = Match.from_pgn(game.headers, self.user)
+            self.matches.append(match)
+            game = chess.pgn.read_game(pgn_io)
+
+def main():
+    user = input("What's your Lichess username?: ")
+    #pgn_matches = input("Insert your API URL here: ")
+    with open("lichess_Fabri150_2026-08-19.pgn") as f:
+        pgn = f.read()
+    a = Analyzer(user)
+    a.load_matches(pgn)
+    print(a.analyzer_results())
+
+if __name__ == "__main__":
+    main()
