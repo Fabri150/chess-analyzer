@@ -34,14 +34,14 @@ class Match:
             elif self.result == "0-1":
                 return "lose"
             else:
-                return "tie"
+                return "draw"
         else:
             if self.result == "1-0":
                 return "lose"
             elif self.result == "0-1":
                 return "win"
             else:
-                return "tie"
+                return "draw"
 
 class Analyzer:
     def __init__(self, user):
@@ -49,10 +49,7 @@ class Analyzer:
         self.matches = []
 
     def analyzer_results(self):
-        if len(self.matches) == 0:
-            return "No matches to analyze"
-
-        results = {"win": 0, "lose": 0, "tie": 0}
+        results = {"win": 0, "lose": 0, "draw": 0}
         for match in self.matches:
             result = match.result_match()
             if result == "win":
@@ -60,8 +57,17 @@ class Analyzer:
             elif result == "lose":
                 results["lose"] += 1
             else:
-                results["tie"] += 1
+                results["draw"] += 1
         return results
+
+    def rates(self):
+        if len(self.matches) == 0:
+            return {"winrate": 0, "lossrate": 0, "drawrate": 0}
+        
+        results = self.analyzer_results()
+        return {"winrate": round(results['win'] / len(self.matches) * 100, 2),
+                "lossrate": round(results['lose'] / len(self.matches) * 100, 2),
+                "drawrate": round(results['draw'] / len(self.matches) * 100, 2)}
 
     def load_matches(self, pgn):
         pgn_io = io.StringIO(pgn)
@@ -79,6 +85,7 @@ def main():
     a = Analyzer(user)
     a.load_matches(pgn)
     print(a.analyzer_results())
+    print(a.rates())
 
 if __name__ == "__main__":
     main()
