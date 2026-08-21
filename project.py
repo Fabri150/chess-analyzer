@@ -60,14 +60,36 @@ class Analyzer:
                 results["draw"] += 1
         return results
 
-    def rates(self):
-        if len(self.matches) == 0:
-            return {"winrate": 0, "lossrate": 0, "drawrate": 0}
+    def calculate_rates(self, results_dict):
+        total = sum(results_dict.values())
+        if total == 0:
+            return {"winrate": 0, "loserate": 0, "drawrate": 0}
+        return {
+            "winrate": round(results_dict["win"] / total * 100, 2),
+            "loserate": round(results_dict["lose"] / total * 100, 2),
+            "drawrate": round(results_dict["draw"] / total * 100, 2)
+        }
+
+    def match_rates(self):
+        return self.calculate_rates(self.analyzer_results())
+
+    def color_results(self):
+        results = {"white": {"win": 0, "lose": 0, "draw": 0}, 
+                "black": {"win": 0, "lose": 0, "draw": 0}}
         
-        results = self.analyzer_results()
-        return {"winrate": round(results['win'] / len(self.matches) * 100, 2),
-                "lossrate": round(results['lose'] / len(self.matches) * 100, 2),
-                "drawrate": round(results['draw'] / len(self.matches) * 100, 2)}
+        for match in self.matches:
+            color = match.my_color()
+            result = match.result_match()
+            results[color][result] += 1
+        return results
+
+    def color_rates(self):
+        results = self.color_results()
+
+        white_rates = self.calculate_rates(results["white"])
+        black_rates = self.calculate_rates(results["black"])
+
+        return {"white": white_rates, "black": black_rates}
 
     def load_matches(self, pgn):
         pgn_io = io.StringIO(pgn)
@@ -80,12 +102,14 @@ class Analyzer:
 def main():
     user = input("What's your Lichess username?: ")
     #pgn_matches = input("Insert your API URL here: ")
-    with open("lichess_Fabri150_2026-08-19.pgn") as f:
+    with open(...) as f:
         pgn = f.read()
     a = Analyzer(user)
     a.load_matches(pgn)
-    print(a.analyzer_results())
-    print(a.rates())
+    #print(a.analyzer_results())
+    #print(a.match_rates())
+    print(a.color_results())
+    print(a.color_rates())
 
 if __name__ == "__main__":
     main()
