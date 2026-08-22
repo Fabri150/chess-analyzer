@@ -2,18 +2,22 @@ import chess.pgn
 import io
 
 class Match:
-    def __init__(self, user, result, white_player, black_player):
+    def __init__(self, user, result, white_player, black_player, eco, opening):
         self.user = user
         self.result = result
         self.white_player = white_player
         self.black_player = black_player
+        self.eco = eco
+        self.opening = opening
 
     @classmethod
     def from_pgn(cls, headers, user):
         result = headers["Result"]
         white = headers["White"]
         black = headers["Black"]
-        return cls(user, result, white, black)
+        eco = headers.get("ECO", "Unknown")
+        opening = headers.get("Opening", "Unknown")
+        return cls(user, result, white, black, eco, opening)
 
     def my_color(self):
         if self.white_player == self.user:
@@ -91,6 +95,23 @@ class Analyzer:
 
         return {"white": white_rates, "black": black_rates}
 
+    def opening_results(self):
+        results = {}
+        for match in self.matches:
+            opening = match.opening
+            results.setdefault(opening, {"win": 0, "lose": 0, "draw": 0})
+            result = match.result_match()
+            results[opening][result] += 1
+        return results
+
+    def opening_rates(self, min_played= 3):
+        rates = {}
+        for opening, results in self.opening_results().items():
+            if opening == "Unknown" or (sum(results.values()) < min_played):
+                continue
+            rates.update({opening: self.calculate_rates(results)})
+        return rates
+
     def load_matches(self, pgn):
         pgn_io = io.StringIO(pgn)
         game = chess.pgn.read_game(pgn_io)
@@ -108,8 +129,10 @@ def main():
     a.load_matches(pgn)
     #print(a.analyzer_results())
     #print(a.match_rates())
-    print(a.color_results())
-    print(a.color_rates())
+    #print(a.color_results())
+    #print(a.color_rates())
+    print(a.opening_results())
+    print(a.opening_rates(1))
 
 if __name__ == "__main__":
     main()
