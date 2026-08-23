@@ -104,10 +104,10 @@ class Analyzer:
             results[opening][result] += 1
         return results
 
-    def opening_rates(self, min_played= 3):
+    def opening_rates(self):
         rates = {}
         for opening, results in self.opening_results().items():
-            if opening == "Unknown" or (sum(results.values()) < min_played):
+            if opening == "Unknown":
                 continue
             rates.update({opening: self.calculate_rates(results)})
         return rates
@@ -120,19 +120,55 @@ class Analyzer:
             self.matches.append(match)
             game = chess.pgn.read_game(pgn_io)
 
+    def print_report(self):
+        match_rates = self.match_rates()
+        analyzer_results = self.analyzer_results()
+        color_rates = self.color_rates()
+        color_results = self.color_results()
+        openings_for_sort = self.opening_results()
+        opening_rates = self.opening_rates()
+
+        openings_sorted = sorted(openings_for_sort, key=lambda opening: sum(openings_for_sort[opening].values()), reverse=True)
+        top_10 = [opening for opening in openings_sorted if opening != "Unknown"][:10]
+
+        openings = []
+        for opening in top_10:
+            openings.append(f"""Name: {opening}
+Total Matches: {sum(openings_for_sort[opening].values())}
+Winrate: {opening_rates[opening]["winrate"]} ({openings_for_sort[opening]["win"]} wins)
+Drawrate: {opening_rates[opening]["drawrate"]} ({openings_for_sort[opening]["draw"]} draws)
+Loserate: {opening_rates[opening]["loserate"]} ({openings_for_sort[opening]["lose"]} loses)""")
+        openings_text = "\n\n".join(openings)
+
+        return f"""
+Stats of {self.user}:
+Total matches: {sum(self.analyzer_results().values())}
+Winrate: {match_rates["winrate"]} ({analyzer_results["win"]} wins)
+Drawrate: {match_rates["drawrate"]} ({analyzer_results["draw"]} draws)
+Loserate: {match_rates["loserate"]} ({analyzer_results["lose"]} loses)
+
+Matches with white: {sum(color_results["white"].values())}
+Winrate: {color_rates["white"]["winrate"]} ({color_results["white"]["win"]} wins)
+Drawrate: {color_rates["white"]["drawrate"]} ({color_results["white"]["draw"]} draws)
+Loserate: {color_rates["white"]["loserate"]} ({color_results["white"]["lose"]} loses)
+
+Matches with black: {sum(color_results["black"].values())}
+Winrate: {color_rates["black"]["winrate"]} ({color_results["black"]["win"]} wins)
+Drawrate: {color_rates["black"]["drawrate"]} ({color_results["black"]["draw"]} draws)
+Loserate: {color_rates["black"]["loserate"]} ({color_results["black"]["lose"]} loses)
+
+Stats with openings:
+{openings_text}
+"""
+
 def main():
     user = input("What's your Lichess username?: ")
     #pgn_matches = input("Insert your API URL here: ")
-    with open(...) as f:
+    with open("lichess_Fabri150_2026-08-21.pgn") as f:
         pgn = f.read()
     a = Analyzer(user)
     a.load_matches(pgn)
-    #print(a.analyzer_results())
-    #print(a.match_rates())
-    #print(a.color_results())
-    #print(a.color_rates())
-    print(a.opening_results())
-    print(a.opening_rates(1))
+    print(a.print_report())
 
 if __name__ == "__main__":
     main()
