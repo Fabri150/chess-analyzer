@@ -1,5 +1,6 @@
 import chess.pgn
 import io
+import requests
 
 class Match:
     def __init__(self, user, result, white_player, black_player, eco, opening):
@@ -142,7 +143,7 @@ Loserate: {opening_rates[opening]["loserate"]} ({openings_for_sort[opening]["los
 
         return f"""
 Stats of {self.user}:
-Total matches: {sum(self.analyzer_results().values())}
+Total matches: {sum(analyzer_results.values())}
 Winrate: {match_rates["winrate"]} ({analyzer_results["win"]} wins)
 Drawrate: {match_rates["drawrate"]} ({analyzer_results["draw"]} draws)
 Loserate: {match_rates["loserate"]} ({analyzer_results["lose"]} loses)
@@ -161,17 +162,35 @@ Stats with openings:
 {openings_text}
 """
 
+def get_matches(user, max_games):
+    url_matches = f"https://lichess.org/api/games/user/{user}?tags=true&clocks=false&evals=false&opening=true&literate=false&max={max_games}"
+    pgn_matches = requests.get(
+    url_matches,
+    headers={"User-Agent": "Mozilla/5.0"}
+    )
+    return pgn_matches.status_code, pgn_matches.text
+
 def main():
-    user = input("What's your Lichess username?: ")
-    #pgn_matches = input("Insert your API URL here: ")
-    with open("lichess_Fabri150_2026-08-21.pgn") as f:
-        pgn = f.read()
-    a = Analyzer(user)
-    a.load_matches(pgn)
-    if not a.matches:
-        print("No matches found for this user.")
+    user = input("Which user's matches do you want to analyze: ")
+    try:
+        max_games = int(input("How many games do you want to analyze? (must be a number): "))
+    except ValueError:
+        print("Didn't insert a number")
+        return
+    status, pgn = get_matches(user, max_games)
+    if status == 200:
+        a = Analyzer(user)
+        a.load_matches(pgn)
+        if not a.matches:
+            print("No matches found for this user.")
+        else:
+            print(a.print_report())
+    elif status == 429:
+        print("Too many requests, try again in a minute")
+    elif status == 404:
+        print("User not found")
     else:
-        print(a.print_report())
+        print("Something went wrong, please try again")
 
 if __name__ == "__main__":
     main()
