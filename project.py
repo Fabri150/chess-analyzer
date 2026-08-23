@@ -168,7 +168,10 @@ def main():
         pgn = f.read()
     a = Analyzer(user)
     a.load_matches(pgn)
-    print(a.print_report())
+    if not a.matches:
+        print("No matches found for this user.")
+    else:
+        print(a.print_report())
 
 if __name__ == "__main__":
     main()
